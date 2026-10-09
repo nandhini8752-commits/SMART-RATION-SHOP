@@ -1,0 +1,6 @@
+{
+  "name": "Smart Ration Queue Management",
+  "description": "Smart Ration Queue Management system with real-time FIFO queue, customer token generation, employee stock management, multilingual support, and Telegram alerts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
