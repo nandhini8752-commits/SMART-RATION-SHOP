@@ -196,3 +196,31 @@ adminRouter.get('/audit-logs', async (req: AuthenticatedRequest, res: Response, 
     next(err);
   }
 });
+
+/**
+ * 9. Cross-Shop Inventory Governance
+ * GET /api/v1/admin/inventory
+ */
+adminRouter.get('/inventory', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const shopId = req.query.shopId as string;
+    const data = await adminService.getInventoryOverview(shopId);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * 10. System Settings & Feature Flags
+ * GET /api/v1/admin/settings
+ */
+adminRouter.get('/settings', async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const settings = await adminService.getSystemSettings();
+    res.json(settings);
+  } catch (err) {
+    next(err);
+  }
+});
+

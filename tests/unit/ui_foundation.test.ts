@@ -34,6 +34,7 @@ describe('Milestone 2 — Government-Style UI Foundation & Layout Shell', () => 
     expect(childPaths).toContain('staff/inventory/ledger');
     expect(childPaths).toContain('staff/beneficiaries');
     expect(childPaths).toContain('staff/reports');
+    expect(childPaths).toContain('staff/settings');
 
     // Admin Portal Routes
     expect(childPaths).toContain('admin/dashboard');
@@ -41,7 +42,14 @@ describe('Milestone 2 — Government-Style UI Foundation & Layout Shell', () => 
     expect(childPaths).toContain('admin/staff');
     expect(childPaths).toContain('admin/commodities');
     expect(childPaths).toContain('admin/policies');
+    expect(childPaths).toContain('admin/inventory');
+    expect(childPaths).toContain('admin/notices');
+    expect(childPaths).toContain('admin/complaints');
     expect(childPaths).toContain('admin/audit');
+    expect(childPaths).toContain('admin/settings');
+
+    // Digital TV Display
+    expect(childPaths).toContain('display/:shopId');
 
     // 404 Fallback
     expect(childPaths).toContain('*');

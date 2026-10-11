@@ -28,6 +28,7 @@ import { StaffInventoryPage } from './pages/staff/StaffInventoryPage';
 import { StaffStockLedgerPage } from './pages/staff/StaffStockLedgerPage';
 import { StaffBeneficiariesPage } from './pages/staff/StaffBeneficiariesPage';
 import { StaffReportsPage } from './pages/staff/StaffReportsPage';
+import { StaffSettingsPage } from './pages/staff/StaffSettingsPage';
 
 // Admin Pages
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
@@ -38,6 +39,8 @@ import { AdminPoliciesPage } from './pages/admin/AdminPoliciesPage';
 import { AdminNoticesPage } from './pages/admin/AdminNoticesPage';
 import { AdminComplaintsPage } from './pages/admin/AdminComplaintsPage';
 import { AdminAuditPage } from './pages/admin/AdminAuditPage';
+import { AdminInventoryPage } from './pages/admin/AdminInventoryPage';
+import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 
 import { ShopQueueDisplayPage } from './pages/citizen/ShopQueueDisplayPage';
 
@@ -80,6 +83,7 @@ export const appRoutes: RouteObject[] = [
       { path: 'staff/inventory/ledger', element: <StaffStockLedgerPage /> },
       { path: 'staff/beneficiaries', element: <StaffBeneficiariesPage /> },
       { path: 'staff/reports', element: <StaffReportsPage /> },
+      { path: 'staff/settings', element: <StaffSettingsPage /> },
 
       // Administrator Portal Routes
       { path: 'admin/dashboard', element: <AdminDashboardPage /> },
@@ -87,9 +91,11 @@ export const appRoutes: RouteObject[] = [
       { path: 'admin/staff', element: <AdminStaffPage /> },
       { path: 'admin/commodities', element: <AdminCommoditiesPage /> },
       { path: 'admin/policies', element: <AdminPoliciesPage /> },
+      { path: 'admin/inventory', element: <AdminInventoryPage /> },
       { path: 'admin/notices', element: <AdminNoticesPage /> },
       { path: 'admin/complaints', element: <AdminComplaintsPage /> },
       { path: 'admin/audit', element: <AdminAuditPage /> },
+      { path: 'admin/settings', element: <AdminSettingsPage /> },
 
       // Fallback
       { path: '*', element: <NotFoundPage /> },
