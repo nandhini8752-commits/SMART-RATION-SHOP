@@ -39,6 +39,8 @@ import { AdminNoticesPage } from './pages/admin/AdminNoticesPage';
 import { AdminComplaintsPage } from './pages/admin/AdminComplaintsPage';
 import { AdminAuditPage } from './pages/admin/AdminAuditPage';
 
+import { ShopQueueDisplayPage } from './pages/citizen/ShopQueueDisplayPage';
+
 // 404 Page
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -50,6 +52,9 @@ export const appRoutes: RouteObject[] = [
       { index: true, element: <HomePage /> },
       { path: 'shops', element: <ShopFinderPage /> },
       { path: 'shops/:shopId', element: <ShopDetailPage /> },
+      { path: 'display/:shopId', element: <ShopQueueDisplayPage /> },
+      { path: 'display', element: <ShopQueueDisplayPage /> },
+      { path: 'screen/:shopId', element: <ShopQueueDisplayPage /> },
       { path: 'ration-services', element: <RationServicesPage /> },
       { path: 'card/verify', element: <CardVerificationPage /> },
       { path: 'card/entitlements', element: <EntitlementViewPage /> },

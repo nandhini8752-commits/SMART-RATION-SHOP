@@ -37,6 +37,18 @@
   --info: #205A83;
 }
 
+html.text-size-sm {
+  font-size: 14px;
+}
+
+html.text-size-base {
+  font-size: 16px;
+}
+
+html.text-size-lg {
+  font-size: 18px;
+}
+
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', 'Noto Sans Tamil', 'Noto Sans Telugu', 'Noto Sans Devanagari', system-ui, -apple-system, sans-serif;
@@ -72,6 +84,52 @@
   line-height: 1.7;
 }
 
+/* High Contrast Mode (WCAG 2.2 AAA Standard for Indian Government Portals) */
+html.high-contrast,
+html.high-contrast body {
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+html.high-contrast header,
+html.high-contrast nav,
+html.high-contrast main,
+html.high-contrast footer,
+html.high-contrast div:not([data-no-contrast]),
+html.high-contrast article,
+html.high-contrast section {
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+}
+
+html.high-contrast h1,
+html.high-contrast h2,
+html.high-contrast h3,
+html.high-contrast h4,
+html.high-contrast strong {
+  color: #FFFF00 !important;
+}
+
+html.high-contrast a {
+  color: #00FFFF !important;
+  text-decoration: underline !important;
+}
+
+html.high-contrast button {
+  background-color: #222222 !important;
+  color: #FFFF00 !important;
+  border: 1px solid #FFFFFF !important;
+}
+
+html.high-contrast input,
+html.high-contrast select,
+html.high-contrast textarea {
+  background-color: #111111 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #FFFF00 !important;
+}
+
 /* Custom focus ring */
 .focus-ring {
   outline: 2px solid transparent;
@@ -80,4 +138,37 @@
 .focus-ring:focus-visible {
   outline: 2px solid var(--tn-maroon);
   outline-offset: 2px;
+}
+
+/* Print Styles for Physical Ration Slip & Complaint Receipts */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    font-size: 12pt;
+  }
+
+  header,
+  nav,
+  footer,
+  .prototype-banner,
+  .no-print,
+  button:not(.allow-print),
+  .skip-to-content {
+    display: none !important;
+  }
+
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-border {
+    border: 1px solid #000000 !important;
+  }
 }

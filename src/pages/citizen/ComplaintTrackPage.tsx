@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
-import { MessageSquareWarning, ArrowLeft, Clock, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { MessageSquareWarning, ArrowLeft, Clock, CheckCircle2, ShieldCheck, AlertCircle, Printer } from 'lucide-react';
 
 export const ComplaintTrackPage: React.FC = () => {
   const { reference } = useParams<{ reference: string }>();
@@ -139,6 +139,75 @@ export const ComplaintTrackPage: React.FC = () => {
                 </p>
               </div>
             )}
+          </div>
+
+          {/* Action CTAs */}
+          <div className="pt-3 border-t border-[#EBE8E1] flex flex-wrap items-center justify-between gap-3">
+            <div className="text-[11px] text-[#666666]">
+              {language === 'ta'
+                ? 'அதிகாரப்பூர்வ ஆவணத்திற்காக ரசீதை அச்சிட்டுக் கொள்ளலாம்.'
+                : 'You may print this official acknowledgement for your records.'}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-3.5 py-2 bg-white hover:bg-[#FAF8F4] text-[#7B2638] border border-[#7B2638] text-xs font-bold rounded transition-colors flex items-center gap-1.5 shadow-2xs"
+                title="Print official grievance acknowledgement"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>{language === 'ta' ? 'ரசீது அச்சிடுக' : 'Print Acknowledgement'}</span>
+              </button>
+
+              <Link
+                to="/complaints/new"
+                className="px-3.5 py-2 bg-[#FAF8F4] hover:bg-white text-[#222222] border border-[#D6D9DC] text-xs font-semibold rounded transition-colors"
+              >
+                {language === 'ta' ? 'புதிய புகார்' : 'New Complaint'}
+              </Link>
+            </div>
+          </div>
+
+          {/* Printable Official Grievance Acknowledgement Slip */}
+          <div className="hidden print:block border-2 border-black p-6 space-y-4 text-center mt-6">
+            <div className="text-sm font-bold uppercase">Government of Tamil Nadu • தமிழ்நாடு அரசு</div>
+            <div className="text-xs">Civil Supplies & Consumer Protection Department</div>
+            <div className="text-base font-bold text-[#7B2638] mt-2">Public Grievance Redressal Acknowledgement</div>
+            
+            <div className="border-y-2 border-black py-3 my-2 space-y-1">
+              <div className="text-xs text-gray-600 font-semibold uppercase tracking-wider">Registration Number</div>
+              <div className="text-3xl font-mono font-black text-[#7B2638]">
+                {complaint.referenceCode}
+              </div>
+            </div>
+
+            <div className="text-xs space-y-2 text-left max-w-md mx-auto py-2">
+              <div className="flex justify-between border-b pb-1">
+                <span className="font-semibold text-gray-600">Concerned FPS:</span>
+                <span className="font-mono font-bold">{complaint.shopCode}</span>
+              </div>
+              <div className="flex justify-between border-b pb-1">
+                <span className="font-semibold text-gray-600">Category:</span>
+                <span className="font-bold">{complaint.category}</span>
+              </div>
+              <div className="flex justify-between border-b pb-1">
+                <span className="font-semibold text-gray-600">Current Status:</span>
+                <span className="font-mono font-bold uppercase">{complaint.status}</span>
+              </div>
+              <div className="flex justify-between border-b pb-1">
+                <span className="font-semibold text-gray-600">Date Logged:</span>
+                <span className="font-mono">{complaint.createdAt}</span>
+              </div>
+              <div className="pt-1">
+                <span className="font-semibold text-gray-600">Subject:</span>
+                <p className="mt-0.5">{complaint.subject}</p>
+              </div>
+            </div>
+
+            <div className="text-[10px] text-gray-600 pt-4 border-t border-dashed border-gray-400">
+              Department Consumer Helpline: 1967 (Toll-free) / 1800-425-5901 • Portal: https://srqms.tn.gov.in
+            </div>
           </div>
         </div>
       )}

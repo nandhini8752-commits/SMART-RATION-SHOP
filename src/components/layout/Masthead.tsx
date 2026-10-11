@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Language } from '../../types';
-import { PhoneCall, Globe, Shield } from 'lucide-react';
+import { PhoneCall, Globe, Eye, Type, Contrast } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const LANGUAGES: { code: Language; label: string; native: string }[] = [
@@ -12,7 +12,25 @@ const LANGUAGES: { code: Language; label: string; native: string }[] = [
 ];
 
 export const Masthead: React.FC = () => {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage } = useLanguage();
+
+  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
+  const [highContrast, setHighContrast] = useState(false);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('text-size-sm', 'text-size-base', 'text-size-lg');
+    root.classList.add(`text-size-${fontSize}`);
+  }, [fontSize]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (highContrast) {
+      root.classList.add('high-contrast');
+    } else {
+      root.classList.remove('high-contrast');
+    }
+  }, [highContrast]);
 
   return (
     <header className="bg-[#F6F3EA] border-b border-[#D6D9DC]">
@@ -31,18 +49,65 @@ export const Masthead: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex items-center gap-3 text-[11px]">
+            {/* Accessibility Font Size Scaler */}
+            <div className="hidden sm:flex items-center gap-1 bg-black/25 rounded px-1.5 py-0.5 border border-white/20">
+              <span className="text-[10px] text-white/70 mr-0.5">Text:</span>
+              <button
+                type="button"
+                onClick={() => setFontSize('sm')}
+                className={`px-1 py-0.5 rounded text-[10px] font-bold ${fontSize === 'sm' ? 'bg-[#C49A3A] text-black' : 'text-white/80 hover:text-white'}`}
+                title="Small text size"
+                aria-label="Decrease text size"
+              >
+                A-
+              </button>
+              <button
+                type="button"
+                onClick={() => setFontSize('base')}
+                className={`px-1 py-0.5 rounded text-[10px] font-bold ${fontSize === 'base' ? 'bg-[#C49A3A] text-black' : 'text-white/80 hover:text-white'}`}
+                title="Default text size"
+                aria-label="Default text size"
+              >
+                A
+              </button>
+              <button
+                type="button"
+                onClick={() => setFontSize('lg')}
+                className={`px-1 py-0.5 rounded text-[10px] font-bold ${fontSize === 'lg' ? 'bg-[#C49A3A] text-black' : 'text-white/80 hover:text-white'}`}
+                title="Large text size"
+                aria-label="Increase text size"
+              >
+                A+
+              </button>
+            </div>
+
+            {/* High Contrast Toggle */}
+            <button
+              type="button"
+              onClick={() => setHighContrast(!highContrast)}
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
+                highContrast ? 'bg-yellow-400 text-black border-white' : 'bg-black/25 text-white/90 border-white/20 hover:text-white'
+              }`}
+              title="Toggle High Contrast Mode (WCAG AAA)"
+              aria-label="Toggle High Contrast Mode"
+            >
+              <Contrast className="w-3 h-3" />
+              <span>{highContrast ? 'Standard' : 'Contrast'}</span>
+            </button>
+
+            {/* Helpline */}
             <a 
               href="tel:1967" 
               className="flex items-center gap-1 text-[#E1BD67] hover:underline"
               title="Toll-free customer care"
             >
               <PhoneCall className="w-3 h-3" />
-              <span>{language === 'ta' ? 'கட்டணமில்லா உதவி எண்: 1967' : 'Toll-Free: 1967 / 1800-425-5901'}</span>
+              <span>1967</span>
             </a>
 
             {/* Language Switcher */}
-            <div className="flex items-center gap-1 bg-black/20 rounded px-1.5 py-0.5">
+            <div className="flex items-center gap-1 bg-black/20 rounded px-1.5 py-0.5 border border-white/20">
               <Globe className="w-3 h-3 text-[#E1BD67]" />
               <div className="flex items-center gap-1">
                 {LANGUAGES.map((lang) => (
