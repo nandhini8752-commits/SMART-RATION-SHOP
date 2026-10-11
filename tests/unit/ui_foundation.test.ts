@@ -39,6 +39,7 @@ describe('Milestone 2 — Government-Style UI Foundation & Layout Shell', () => 
     // Admin Portal Routes
     expect(childPaths).toContain('admin/dashboard');
     expect(childPaths).toContain('admin/shops');
+    expect(childPaths).toContain('admin/shops/:id');
     expect(childPaths).toContain('admin/staff');
     expect(childPaths).toContain('admin/commodities');
     expect(childPaths).toContain('admin/policies');

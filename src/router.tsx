@@ -88,6 +88,7 @@ export const appRoutes: RouteObject[] = [
       // Administrator Portal Routes
       { path: 'admin/dashboard', element: <AdminDashboardPage /> },
       { path: 'admin/shops', element: <AdminShopsPage /> },
+      { path: 'admin/shops/:id', element: <AdminShopsPage /> },
       { path: 'admin/staff', element: <AdminStaffPage /> },
       { path: 'admin/commodities', element: <AdminCommoditiesPage /> },
       { path: 'admin/policies', element: <AdminPoliciesPage /> },
