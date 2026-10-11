@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouteObject } from 'react-router-dom';
+import { createBrowserRouter, RouteObject, Navigate } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 
 // Citizen Pages
@@ -28,6 +28,7 @@ import { StaffInventoryPage } from './pages/staff/StaffInventoryPage';
 import { StaffStockLedgerPage } from './pages/staff/StaffStockLedgerPage';
 import { StaffBeneficiariesPage } from './pages/staff/StaffBeneficiariesPage';
 import { StaffReportsPage } from './pages/staff/StaffReportsPage';
+import { StaffSettingsPage } from './pages/staff/StaffSettingsPage';
 
 // Admin Pages
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
@@ -38,6 +39,10 @@ import { AdminPoliciesPage } from './pages/admin/AdminPoliciesPage';
 import { AdminNoticesPage } from './pages/admin/AdminNoticesPage';
 import { AdminComplaintsPage } from './pages/admin/AdminComplaintsPage';
 import { AdminAuditPage } from './pages/admin/AdminAuditPage';
+import { AdminInventoryPage } from './pages/admin/AdminInventoryPage';
+import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
+
+import { ShopQueueDisplayPage } from './pages/citizen/ShopQueueDisplayPage';
 
 // 404 Page
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -50,6 +55,9 @@ export const appRoutes: RouteObject[] = [
       { index: true, element: <HomePage /> },
       { path: 'shops', element: <ShopFinderPage /> },
       { path: 'shops/:shopId', element: <ShopDetailPage /> },
+      { path: 'display/:shopId', element: <ShopQueueDisplayPage /> },
+      { path: 'display', element: <ShopQueueDisplayPage /> },
+      { path: 'screen/:shopId', element: <ShopQueueDisplayPage /> },
       { path: 'ration-services', element: <RationServicesPage /> },
       { path: 'card/verify', element: <CardVerificationPage /> },
       { path: 'card/entitlements', element: <EntitlementViewPage /> },
@@ -67,6 +75,15 @@ export const appRoutes: RouteObject[] = [
       { path: 'admin/login', element: <AdminLoginPage /> },
       { path: 'forbidden', element: <ForbiddenPage /> },
 
+      // Portal Root & Category Redirects
+      { path: 'admin', element: <Navigate to="/admin/dashboard" replace /> },
+      { path: 'admin/profile', element: <Navigate to="/admin/dashboard" replace /> },
+      { path: 'staff', element: <Navigate to="/staff/dashboard" replace /> },
+      { path: 'staff/profile', element: <Navigate to="/staff/dashboard" replace /> },
+      { path: 'card', element: <Navigate to="/card/verify" replace /> },
+      { path: 'queue', element: <Navigate to="/queue/create" replace /> },
+      { path: 'complaints', element: <Navigate to="/complaints/new" replace /> },
+
       // Staff Portal Routes
       { path: 'staff/dashboard', element: <StaffDashboardPage /> },
       { path: 'staff/queue', element: <StaffLiveQueuePage /> },
@@ -75,16 +92,20 @@ export const appRoutes: RouteObject[] = [
       { path: 'staff/inventory/ledger', element: <StaffStockLedgerPage /> },
       { path: 'staff/beneficiaries', element: <StaffBeneficiariesPage /> },
       { path: 'staff/reports', element: <StaffReportsPage /> },
+      { path: 'staff/settings', element: <StaffSettingsPage /> },
 
       // Administrator Portal Routes
       { path: 'admin/dashboard', element: <AdminDashboardPage /> },
       { path: 'admin/shops', element: <AdminShopsPage /> },
+      { path: 'admin/shops/:id', element: <AdminShopsPage /> },
       { path: 'admin/staff', element: <AdminStaffPage /> },
       { path: 'admin/commodities', element: <AdminCommoditiesPage /> },
       { path: 'admin/policies', element: <AdminPoliciesPage /> },
+      { path: 'admin/inventory', element: <AdminInventoryPage /> },
       { path: 'admin/notices', element: <AdminNoticesPage /> },
       { path: 'admin/complaints', element: <AdminComplaintsPage /> },
       { path: 'admin/audit', element: <AdminAuditPage /> },
+      { path: 'admin/settings', element: <AdminSettingsPage /> },
 
       // Fallback
       { path: '*', element: <NotFoundPage /> },

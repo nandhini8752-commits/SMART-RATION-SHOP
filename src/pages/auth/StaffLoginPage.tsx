@@ -79,8 +79,12 @@ export const StaffLoginPage: React.FC = () => {
     <div className="max-w-md mx-auto space-y-6 py-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-full bg-[#FAF0F2] text-[#7B2638] flex items-center justify-center mx-auto">
-          <UserCheck className="w-6 h-6" />
+        <div className="w-16 h-16 rounded-full bg-[#FAF0F2] p-1 flex items-center justify-center mx-auto shadow-xs border border-[#C49A3A]/40 overflow-hidden">
+          <img 
+            src="/assets/logos/Seal_of_Tamil_Nadu.webp" 
+            alt="Tamil Nadu Government Seal" 
+            className="w-full h-full object-contain"
+          />
         </div>
         <h2 className="text-2xl font-bold text-[#222222]">
           {language === 'ta' ? 'பணியாளர் உள்நுழைவு' : 'Fair Price Shop Staff Portal'}

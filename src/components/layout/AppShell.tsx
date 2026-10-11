@@ -1,6 +1,5 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { PrototypeNotice } from './PrototypeNotice';
 import { Masthead } from './Masthead';
 import { PrimaryNav } from './PrimaryNav';
 import { Breadcrumbs } from './Breadcrumbs';
@@ -13,9 +12,6 @@ export const AppShell: React.FC = () => {
       <a href="#main-content" className="skip-to-content">
         Skip to main content
       </a>
-
-      {/* Mandatory Persistent Prototype Notice */}
-      <PrototypeNotice />
 
       {/* Government Department Masthead */}
       <Masthead />

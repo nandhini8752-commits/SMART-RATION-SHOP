@@ -186,6 +186,21 @@ export const shopService = {
       [shop.id]
     );
 
+    // Get next waiting tokens in FIFO order
+    const nextWaitingRes = await query(
+      `
+      SELECT 
+        token_number as "tokenNumber",
+        sequence_no as "sequenceNo",
+        created_at as "createdAt"
+      FROM queue_tokens
+      WHERE shop_id = $1 AND service_date = CURRENT_DATE AND status = 'WAITING'
+      ORDER BY sequence_no ASC
+      LIMIT 8
+      `,
+      [shop.id]
+    );
+
     return {
       shop,
       stock: stockRes.rows,
@@ -194,6 +209,7 @@ export const shopService = {
         servingCount: parseInt(queueSummaryRes.rows[0]?.servingCount || '0', 10),
         completedCount: parseInt(queueSummaryRes.rows[0]?.completedCount || '0', 10),
         currentlyServing: servingTokensRes.rows,
+        nextWaiting: nextWaitingRes.rows,
       },
       timestamp: new Date().toISOString(),
     };

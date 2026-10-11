@@ -12,7 +12,8 @@ import {
   ArrowLeft, 
   CheckCircle2, 
   AlertCircle,
-  PhoneCall
+  PhoneCall,
+  Tv
 } from 'lucide-react';
 
 interface ShopStock {
@@ -120,6 +121,16 @@ export const ShopDetailPage: React.FC = () => {
             >
               <Ticket className="w-3.5 h-3.5 text-[#E1BD67]" />
               <span>{language === 'ta' ? 'டோக்கன் பெறுக' : 'Get Queue Token'}</span>
+            </Link>
+            <Link
+              to={`/display/${shopId || 'DEMO-CHN-001'}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-[#FAF8F4] hover:bg-white text-[#1F6B45] text-xs font-semibold px-3 py-2 rounded border border-emerald-300 transition-colors"
+              title="Open full-screen waiting hall TV display"
+            >
+              <Tv className="w-3.5 h-3.5 text-[#1F6B45]" />
+              <span>{language === 'ta' ? 'நேரடி வரிசைத் திரை' : 'Waiting Hall Display'}</span>
             </Link>
             <Link
               to="/complaints/new"

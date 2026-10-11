@@ -476,4 +476,82 @@ export const adminService = {
       offset: o,
     };
   },
+
+  /**
+   * 9. Inventory overview across all shops for state administrator
+   */
+  async getInventoryOverview(shopId?: string) {
+    const conditions = ['c.is_active = TRUE'];
+    const values: any[] = [];
+    if (shopId && shopId !== 'ALL') {
+      values.push(shopId);
+      conditions.push(`(si.shop_id::text = $${values.length} OR s.shop_code = $${values.length})`);
+    }
+
+    const res = await query(
+      `
+      SELECT 
+        si.id,
+        si.shop_id as "shopId",
+        s.shop_code as "shopCode",
+        s.name as "shopName",
+        s.district,
+        c.code as "commodityCode",
+        c.name_i18n as "commodityNameI18n",
+        c.unit,
+        si.quantity_available::numeric as "quantityAvailable",
+        si.reorder_level::numeric as "reorderLevel",
+        CASE 
+          WHEN si.quantity_available = 0 THEN 'OUT_OF_STOCK'
+          WHEN si.quantity_available <= si.reorder_level THEN 'LOW_STOCK'
+          ELSE 'ADEQUATE'
+        END as "status",
+        si.updated_at as "updatedAt"
+      FROM shop_inventory si
+      JOIN shops s ON s.id = si.shop_id
+      JOIN commodities c ON c.id = si.commodity_id
+      WHERE ${conditions.join(' AND ')}
+      ORDER BY s.district ASC, s.shop_code ASC, c.code ASC
+      `,
+      values
+    );
+
+    return {
+      inventory: res.rows.map((r: any) => ({
+        ...r,
+        quantityAvailable: parseFloat(r.quantityAvailable),
+        reorderLevel: parseFloat(r.reorderLevel),
+      })),
+    };
+  },
+
+  /**
+   * 10. System and Governance Settings
+   */
+  async getSystemSettings() {
+    return {
+      demoMode: process.env.DEMO_MODE !== 'false',
+      defaultLocale: 'ta',
+      supportedLocales: ['ta', 'en', 'te', 'hi'],
+      queueIntervalSeconds: 4,
+      avgServiceMinutes: 3.5,
+      notificationAdapters: {
+        telegram: {
+          configured: Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID),
+          botUsername: '@tn_srqms_bot',
+          status: 'SIMULATED_OR_ACTIVE',
+        },
+        sms: {
+          configured: true,
+          gateway: 'NIC_TAMILNADU_SMS_GATEWAY',
+          status: 'DEMO_SIMULATION',
+        },
+      },
+      helplines: {
+        consumerTollFree: '1967',
+        stateHelpline: '1800-425-5901',
+      },
+      retentionDays: 180,
+    };
+  },
 };

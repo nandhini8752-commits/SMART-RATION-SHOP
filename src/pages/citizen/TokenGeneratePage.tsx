@@ -12,7 +12,8 @@ import {
   AlertCircle, 
   XCircle, 
   RefreshCw,
-  BellRing
+  BellRing,
+  Printer
 } from 'lucide-react';
 
 interface ActiveTokenState {
@@ -55,6 +56,25 @@ export const TokenGeneratePage: React.FC = () => {
           const json = await res.json();
           setToken((prev) => {
             if (!prev) return null;
+            if (prev.status === 'WAITING' && json.status === 'SERVING') {
+              try {
+                const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+                if (AudioCtx) {
+                  const ctx = new AudioCtx();
+                  const osc = ctx.createOscillator();
+                  const gain = ctx.createGain();
+                  osc.type = 'sine';
+                  osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                  osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+                  gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+                  osc.connect(gain);
+                  gain.connect(ctx.destination);
+                  osc.start();
+                  osc.stop(ctx.currentTime + 0.6);
+                }
+              } catch (_) {}
+            }
             return {
               ...prev,
               status: json.status,
@@ -416,6 +436,15 @@ export const TokenGeneratePage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-3.5 py-2 bg-white hover:bg-[#FAF8F4] text-[#7B2638] border border-[#7B2638] text-xs font-bold rounded transition-colors flex items-center gap-1.5 shadow-2xs"
+                title="Print physical token slip"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>{language === 'ta' ? 'ரசீது அச்சிடுக' : 'Print Slip'}</span>
+              </button>
               {token.status === 'WAITING' && (
                 <button
                   type="button"
@@ -434,6 +463,24 @@ export const TokenGeneratePage: React.FC = () => {
               >
                 {language === 'ta' ? 'புதிய டோக்கன்' : 'New Token'}
               </button>
+            </div>
+          </div>
+
+          {/* Printable Official Token Slip for Paper POS Receipts */}
+          <div className="hidden print:block border-2 border-black p-6 space-y-4 text-center mt-6">
+            <div className="text-sm font-bold uppercase">Government of Tamil Nadu • தமிழ்நாடு அரசு</div>
+            <div className="text-xs">Civil Supplies & Consumer Protection Department</div>
+            <div className="text-base font-bold text-[#7B2638] mt-2">Fair Price Shop Queue Token</div>
+            <div className="text-4xl font-mono font-black border-y-2 border-black py-4 my-2">
+              {token.tokenNumber}
+            </div>
+            <div className="text-xs space-y-1">
+              <div>Card Number: <span className="font-mono font-bold">{token.cardNumber}</span></div>
+              <div>Service Date: <span className="font-mono">{token.serviceDate}</span></div>
+              <div>Position in Line: #{token.position}</div>
+            </div>
+            <div className="text-[10px] italic pt-2">
+              Please present this physical slip at the dispensing counter when your token number is called.
             </div>
           </div>
         </div>

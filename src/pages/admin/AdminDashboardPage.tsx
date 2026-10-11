@@ -13,7 +13,9 @@ import {
   ArrowRight, 
   LogOut,
   Sliders,
-  History
+  History,
+  Boxes,
+  Settings
 } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -121,12 +123,28 @@ export const AdminDashboardPage: React.FC = () => {
       count: `${stats.pendingComplaints} Pending`
     },
     {
+      to: '/admin/inventory',
+      titleEn: 'Statewide Inventory',
+      titleTa: 'மாநில இருப்பு மேலாண்மை',
+      descEn: 'Inspect real-time stock levels, reorder thresholds, and warehouse allocations across all shops.',
+      icon: Boxes,
+      count: 'Statewide Stock'
+    },
+    {
       to: '/admin/audit',
       titleEn: 'Security & Action Audit',
       titleTa: 'பாதுகாப்பு தணிக்கை ஏடு',
       descEn: 'Searchable, immutable ledger of all administrative and transactional events.',
       icon: History,
       count: `${stats.totalAuditEvents} Events`
+    },
+    {
+      to: '/admin/settings',
+      titleEn: 'System Governance',
+      titleTa: 'துறை கணினி அமைப்புகள்',
+      descEn: 'Manage prototype policies, multi-channel notification adapters, and queue timing limits.',
+      icon: Settings,
+      count: 'Configured'
     }
   ];
 

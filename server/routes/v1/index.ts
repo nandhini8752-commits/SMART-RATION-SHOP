@@ -17,6 +17,8 @@ v1Router.use('/auth', authRouter);
 
 // Public discovery, shop directory, commodities & policies (/api/v1/public/*)
 v1Router.use('/public', publicRouter);
+// Direct alias for shops convenience (/api/v1/shops/* -> publicRouter)
+v1Router.use('/', publicRouter);
 
 // Staff queue dispatch, multi-counter, and beneficiaries (/api/v1/staff/*)
 v1Router.use('/staff', staffRouter);

@@ -14,7 +14,8 @@ import {
   CheckCircle2,
   Clock,
   RefreshCw,
-  UserCheck
+  UserCheck,
+  Settings
 } from 'lucide-react';
 
 export const StaffDashboardPage: React.FC = () => {
@@ -282,6 +283,29 @@ export const StaffDashboardPage: React.FC = () => {
           </div>
           <div className="pt-3 border-t border-[#F0EFEB] flex items-center justify-between text-xs font-bold text-[#7B2638]">
             <span>{language === 'ta' ? 'பயனாளிகளைப் பார்க்க' : 'View Beneficiaries'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </div>
+        </Link>
+
+        <Link
+          to="/staff/settings"
+          className="bg-white border border-[#D6D9DC] hover:border-[#7B2638] rounded-lg p-5 flex flex-col justify-between space-y-3 group transition-all shadow-xs"
+        >
+          <div className="space-y-2">
+            <div className="w-10 h-10 rounded bg-[#FAF0F2] text-[#7B2638] flex items-center justify-center group-hover:bg-[#7B2638] group-hover:text-white transition-colors">
+              <Settings className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold text-sm text-[#222222] group-hover:text-[#7B2638]">
+              {language === 'ta' ? 'கடை அமைப்புகள்' : 'Shop Operations Settings'}
+            </h3>
+            <p className="text-xs text-[#555555]">
+              {language === 'ta'
+                ? 'கவுண்டர் எண்ணிக்கை, ஒலி எச்சரிக்கைகள் மற்றும் ரசீது அச்சு அமைப்புகளை உள்ளமைக்கவும்.'
+                : 'Configure active dispensing counters, bell chime alerts, and receipt footer notes.'}
+            </p>
+          </div>
+          <div className="pt-3 border-t border-[#F0EFEB] flex items-center justify-between text-xs font-bold text-[#7B2638]">
+            <span>{language === 'ta' ? 'அமைப்புகளை மாற்ற' : 'Configure Settings'}</span>
             <ArrowRight className="w-4 h-4" />
           </div>
         </Link>

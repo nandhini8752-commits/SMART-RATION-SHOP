@@ -26,6 +26,14 @@ const ROUTE_LABELS: Record<string, { en: string; ta: string }> = {
   'audit': { en: 'Audit Logs', ta: 'தணிக்கை பதிவுகள்' }
 };
 
+const SEGMENT_REDIRECTS: Record<string, string> = {
+  '/admin': '/admin/dashboard',
+  '/staff': '/staff/dashboard',
+  '/card': '/card/verify',
+  '/queue': '/queue/create',
+  '/complaints': '/complaints/new'
+};
+
 export const Breadcrumbs: React.FC = () => {
   const location = useLocation();
   const { language } = useLanguage();
@@ -63,7 +71,7 @@ export const Breadcrumbs: React.FC = () => {
                   {label}
                 </span>
               ) : (
-                <Link to={to} className="text-[#7B2638] hover:underline font-medium">
+                <Link to={SEGMENT_REDIRECTS[to] || to} className="text-[#7B2638] hover:underline font-medium">
                   {label}
                 </Link>
               )}
