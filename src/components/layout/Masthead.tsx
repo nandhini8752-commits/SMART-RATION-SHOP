@@ -135,9 +135,9 @@ export const Masthead: React.FC = () => {
         {/* Department Identity & Mark */}
         <Link to="/" className="flex items-center gap-3.5 text-decoration-none group">
           <img 
-            src="/assets/logos/srqms-mark.svg" 
-            alt="SRQMS Project Mark" 
-            className="w-12 h-12 shrink-0 drop-shadow-sm transition-transform group-hover:scale-105"
+            src="/assets/logos/Seal_of_Tamil_Nadu.webp" 
+            alt="Government of Tamil Nadu Official Seal" 
+            className="w-14 h-14 object-contain shrink-0 drop-shadow-sm transition-transform group-hover:scale-105"
           />
           <div>
             <div className="text-xs font-semibold text-[#7B2638] tracking-wider uppercase">

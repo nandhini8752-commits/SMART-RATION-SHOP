@@ -14,9 +14,9 @@ export const Footer: React.FC = () => {
         <div className="space-y-3">
           <div className="flex items-center gap-2.5">
             <img 
-              src="/assets/logos/srqms-mark.svg" 
-              alt="SRQMS Mark" 
-              className="w-8 h-8 rounded bg-[#7B2638] p-0.5" 
+              src="/assets/logos/Seal_of_Tamil_Nadu.webp" 
+              alt="Government of Tamil Nadu Official Seal" 
+              className="w-8 h-8 object-contain rounded bg-white p-0.5" 
             />
             <span className="font-bold text-white text-sm">SRQMS Tamil Nadu</span>
           </div>

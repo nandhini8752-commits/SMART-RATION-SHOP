@@ -97,7 +97,7 @@ export const ShopQueueDisplayPage: React.FC = () => {
 
     const fetchQueue = async () => {
       try {
-        const res = await fetch(`/api/v1/shops/${shopId}/availability`);
+        const res = await fetch(`/api/v1/public/shops/${shopId}/availability`);
         if (res.ok) {
           const json = await res.json();
           if (active && json.shop) {
@@ -155,8 +155,12 @@ export const ShopQueueDisplayPage: React.FC = () => {
       {/* Top Banner / Masthead */}
       <header className="bg-[#1A2238] border-b-2 border-[#C49A3A] px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-[#FAF8F4] flex items-center justify-center p-1 border-2 border-[#C49A3A] shadow-inner">
-            <span className="text-[#7B2638] font-black text-xl">TN</span>
+          <div className="w-14 h-14 rounded-full bg-[#FAF8F4] flex items-center justify-center p-1 border-2 border-[#C49A3A] shadow-inner overflow-hidden shrink-0">
+            <img 
+              src="/assets/logos/Seal_of_Tamil_Nadu.webp" 
+              alt="Seal of Tamil Nadu" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <div className="text-xs uppercase tracking-widest text-[#E6C665] font-semibold flex items-center gap-2">

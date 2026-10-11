@@ -67,8 +67,12 @@ export const AdminLoginPage: React.FC = () => {
     <div className="max-w-md mx-auto space-y-6 py-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-full bg-[#591A28] text-[#E1BD67] flex items-center justify-center mx-auto">
-          <ShieldAlert className="w-6 h-6" />
+        <div className="w-16 h-16 rounded-full bg-white p-1 flex items-center justify-center mx-auto shadow-xs border border-[#C49A3A]/40 overflow-hidden">
+          <img 
+            src="/assets/logos/Seal_of_Tamil_Nadu.webp" 
+            alt="Tamil Nadu Government Seal" 
+            className="w-full h-full object-contain"
+          />
         </div>
         <h2 className="text-2xl font-bold text-[#222222]">
           {language === 'ta' ? 'அமைப்பு நிர்வாக தளம்' : 'System Administration Portal'}
