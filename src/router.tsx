@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouteObject } from 'react-router-dom';
+import { createBrowserRouter, RouteObject, Navigate } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 
 // Citizen Pages
@@ -74,6 +74,15 @@ export const appRoutes: RouteObject[] = [
       { path: 'staff/login', element: <StaffLoginPage /> },
       { path: 'admin/login', element: <AdminLoginPage /> },
       { path: 'forbidden', element: <ForbiddenPage /> },
+
+      // Portal Root & Category Redirects
+      { path: 'admin', element: <Navigate to="/admin/dashboard" replace /> },
+      { path: 'admin/profile', element: <Navigate to="/admin/dashboard" replace /> },
+      { path: 'staff', element: <Navigate to="/staff/dashboard" replace /> },
+      { path: 'staff/profile', element: <Navigate to="/staff/dashboard" replace /> },
+      { path: 'card', element: <Navigate to="/card/verify" replace /> },
+      { path: 'queue', element: <Navigate to="/queue/create" replace /> },
+      { path: 'complaints', element: <Navigate to="/complaints/new" replace /> },
 
       // Staff Portal Routes
       { path: 'staff/dashboard', element: <StaffDashboardPage /> },

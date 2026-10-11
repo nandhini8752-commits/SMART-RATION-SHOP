@@ -66,17 +66,20 @@ export const PrimaryNav: React.FC = () => {
     }
   ];
 
+  const isStaffLoggedIn = typeof window !== 'undefined' && !!localStorage.getItem('srqms_staff_user');
+  const isAdminLoggedIn = typeof window !== 'undefined' && !!localStorage.getItem('srqms_admin_user');
+
   const portalLinks = [
     {
-      to: '/staff/login',
-      labelEn: 'Staff Portal',
-      labelTa: 'பணியாளர் தளம்',
+      to: isStaffLoggedIn ? '/staff/dashboard' : '/staff/login',
+      labelEn: isStaffLoggedIn ? 'Staff Console' : 'Staff Portal',
+      labelTa: isStaffLoggedIn ? 'பணியாளர் பலகை' : 'பணியாளர் தளம்',
       icon: UserCheck
     },
     {
-      to: '/admin/login',
-      labelEn: 'Admin Portal',
-      labelTa: 'நிர்வாக தளம்',
+      to: isAdminLoggedIn ? '/admin/dashboard' : '/admin/login',
+      labelEn: isAdminLoggedIn ? 'Admin Console' : 'Admin Portal',
+      labelTa: isAdminLoggedIn ? 'நிர்வாக பலகை' : 'நிர்வாக தளம்',
       icon: ShieldAlert
     }
   ];

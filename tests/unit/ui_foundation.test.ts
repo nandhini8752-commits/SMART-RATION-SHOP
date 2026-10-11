@@ -22,10 +22,12 @@ describe('Milestone 2 — Government-Style UI Foundation & Layout Shell', () => 
     expect(childPaths).toContain('accessibility');
     expect(childPaths).toContain('privacy');
 
-    // Auth Routes
+    // Auth & Portal Redirect Routes
     expect(childPaths).toContain('staff/login');
     expect(childPaths).toContain('admin/login');
     expect(childPaths).toContain('forbidden');
+    expect(childPaths).toContain('admin');
+    expect(childPaths).toContain('staff');
 
     // Staff Operator Routes
     expect(childPaths).toContain('staff/dashboard');

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Language } from '../../types';
-import { PhoneCall, Globe, Eye, Type, Contrast } from 'lucide-react';
+import { PhoneCall, Globe, Type } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const LANGUAGES: { code: Language; label: string; native: string }[] = [
@@ -15,7 +15,6 @@ export const Masthead: React.FC = () => {
   const { language, setLanguage } = useLanguage();
 
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
-  const [highContrast, setHighContrast] = useState(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -24,13 +23,9 @@ export const Masthead: React.FC = () => {
   }, [fontSize]);
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (highContrast) {
-      root.classList.add('high-contrast');
-    } else {
-      root.classList.remove('high-contrast');
-    }
-  }, [highContrast]);
+    // Ensure high-contrast is removed if set previously
+    document.documentElement.classList.remove('high-contrast');
+  }, []);
 
   return (
     <header className="bg-[#F6F3EA] border-b border-[#D6D9DC]">
@@ -81,20 +76,6 @@ export const Masthead: React.FC = () => {
                 A+
               </button>
             </div>
-
-            {/* High Contrast Toggle */}
-            <button
-              type="button"
-              onClick={() => setHighContrast(!highContrast)}
-              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
-                highContrast ? 'bg-yellow-400 text-black border-white' : 'bg-black/25 text-white/90 border-white/20 hover:text-white'
-              }`}
-              title="Toggle High Contrast Mode (WCAG AAA)"
-              aria-label="Toggle High Contrast Mode"
-            >
-              <Contrast className="w-3 h-3" />
-              <span>{highContrast ? 'Standard' : 'Contrast'}</span>
-            </button>
 
             {/* Helpline */}
             <a 
@@ -155,19 +136,6 @@ export const Masthead: React.FC = () => {
             </p>
           </div>
         </Link>
-
-        {/* Prototype Validation Status Badge */}
-        <div className="hidden lg:flex items-center gap-3 bg-white border border-[#D6D9DC] px-3.5 py-2 rounded shadow-xs">
-          <div className="w-2 h-2 rounded-full bg-[#1F6B45] animate-pulse"></div>
-          <div className="text-right">
-            <div className="text-xs font-bold text-[#222222]">
-              {language === 'ta' ? 'மாதிரி இயக்கம் செயலில் உள்ளது' : 'Prototype Active (Demo Mode)'}
-            </div>
-            <div className="text-[11px] text-[#555555]">
-              {language === 'ta' ? 'சேவை நேரம்: காலை 9:00 - மாலை 5:00' : 'FPS Standard Hours: 09:00 - 17:00'}
-            </div>
-          </div>
-        </div>
       </div>
     </header>
   );
