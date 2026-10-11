@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">SRQMS project mark</title>
+  <desc id="desc">Original non-government mark showing a simple grain stalk inside a maroon rounded square.</desc>
+  <rect x="4" y="4" width="120" height="120" rx="12" fill="#7B2638"/>
+  <path d="M64 96V37" stroke="#F6F3EA" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M64 50C49 48 40 39 39 27C52 28 62 36 64 50Z" fill="#C49A3A"/>
+  <path d="M64 63C78 60 88 51 90 39C77 41 67 50 64 63Z" fill="#E1BD67"/>
+  <path d="M64 76C51 73 43 66 41 56C53 57 62 65 64 76Z" fill="#E1BD67"/>
+  <path d="M64 89C77 86 85 78 87 68C75 70 66 78 64 89Z" fill="#C49A3A"/>
+  <path d="M43 98H85" stroke="#F6F3EA" stroke-width="4" stroke-linecap="round"/>
+</svg>

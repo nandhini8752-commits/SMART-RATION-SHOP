@@ -1,9 +1,83 @@
 @import "tailwindcss";
 
+@theme {
+  --color-tn-maroon: #7B2638;
+  --color-tn-maroon-dark: #591A28;
+  --color-tn-maroon-light: #9B3349;
+  --color-tn-cream: #F6F3EA;
+  --color-tn-cream-light: #FAF8F4;
+  --color-tn-gold: #C49A3A;
+  --color-tn-gold-light: #E1BD67;
+  --color-ink: #222222;
+  --color-muted-ink: #555555;
+  --color-surface: #F5F6F7;
+  --color-tn-border: #D6D9DC;
+  --color-tn-success: #1F6B45;
+  --color-tn-warning: #8A5300;
+  --color-tn-danger: #A12622;
+  --color-tn-info: #205A83;
+}
+
+:root {
+  --tn-maroon: #7B2638;
+  --tn-maroon-dark: #591A28;
+  --tn-maroon-light: #9B3349;
+  --tn-cream: #F6F3EA;
+  --tn-cream-light: #FAF8F4;
+  --tn-gold: #C49A3A;
+  --tn-gold-light: #E1BD67;
+  --ink: #222222;
+  --muted-ink: #555555;
+  --page: #FFFFFF;
+  --surface: #F5F6F7;
+  --border: #D6D9DC;
+  --success: #1F6B45;
+  --warning: #8A5300;
+  --danger: #A12622;
+  --info: #205A83;
+}
+
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', 'Noto Sans Tamil', 'Noto Sans Telugu', 'Noto Sans Devanagari', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background-color: #FFFFFF;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
   }
+
+  /* Accessibility skip to main content */
+  .skip-to-content {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--tn-maroon);
+    color: #FFFFFF;
+    padding: 8px 16px;
+    z-index: 1000;
+    transition: top 0.2s;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0 0 4px 0;
+  }
+  .skip-to-content:focus {
+    top: 0;
+  }
+}
+
+/* Tamil font specific adjustments */
+[lang="ta"] {
+  font-family: 'Noto Sans Tamil', 'Plus Jakarta Sans', system-ui, sans-serif;
+  line-height: 1.7;
+}
+
+/* Custom focus ring */
+.focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid var(--tn-maroon);
+  outline-offset: 2px;
 }

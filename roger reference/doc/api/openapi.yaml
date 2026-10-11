@@ -1,0 +1,1548 @@
+openapi: 3.1.0
+info:
+  title: Smart Ration Queue Management System (SRQMS) API
+  version: 0.1.0
+  description: >-
+    API contract for a validation prototype using synthetic sample data only.
+    This is not an official Tamil Nadu Government/TNPDS API and does not connect
+    to government beneficiary or ePoS systems.
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+security: []
+tags:
+  - name: System
+  - name: Public
+  - name: Citizen Demo
+  - name: Authentication
+  - name: Staff
+  - name: Administration
+paths:
+  /health:
+    get:
+      tags: [System]
+      operationId: getHealth
+      summary: Liveness probe
+      responses:
+        '200':
+          description: Process is running
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthResponse' }
+  /ready:
+    get:
+      tags: [System]
+      operationId: getReadiness
+      summary: Readiness probe
+      responses:
+        '200':
+          description: Dependencies available
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReadyResponse' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /public/config:
+    get:
+      tags: [Public]
+      operationId: getPublicConfig
+      summary: Get locale options, prototype disclaimer and feature switches
+      responses:
+        '200':
+          description: Public configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [prototype, enabledLocales, demoMode]
+                properties:
+                  prototype: { type: boolean, const: true }
+                  disclaimer: { type: string }
+                  enabledLocales: { type: array, items: { type: string, enum: [en, ta, te, hi] } }
+                  demoMode: { type: boolean }
+                  features:
+                    type: object
+                    additionalProperties: { type: boolean }
+  /public/notices:
+    get:
+      tags: [Public]
+      operationId: listPublicNotices
+      summary: List currently published notices
+      parameters:
+        - $ref: '#/components/parameters/Locale'
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+      responses:
+        '200':
+          description: Published notices
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Notice' } }
+  /public/districts:
+    get:
+      tags: [Public]
+      operationId: listDemoDistricts
+      summary: List districts represented in demo data
+      responses:
+        '200':
+          description: Demo district names
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { type: string } }
+  /public/commodities:
+    get:
+      tags: [Public]
+      operationId: listCommodities
+      summary: List commodity labels and units
+      parameters:
+        - $ref: '#/components/parameters/Locale'
+      responses:
+        '200':
+          description: Commodity list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Commodity' } }
+  /public/policies/current:
+    get:
+      tags: [Public]
+      operationId: listCurrentPolicyRules
+      summary: List active entitlement rules and their provenance
+      parameters:
+        - in: query
+          name: district
+          schema: { type: string }
+        - in: query
+          name: cardCategory
+          schema: { $ref: '#/components/schemas/CardCategory' }
+      responses:
+        '200':
+          description: Active rules; each rule identifies demo/verified status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/PolicyRule' } }
+  /public/shops:
+    get:
+      tags: [Public]
+      operationId: listShops
+      summary: Search demo Fair Price Shops
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string, maxLength: 100 }
+        - in: query
+          name: district
+          schema: { type: string, maxLength: 100 }
+        - in: query
+          name: taluk
+          schema: { type: string, maxLength: 100 }
+        - in: query
+          name: pincode
+          schema: { type: string, pattern: '^\\d{6}$' }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Paginated shop results
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginatedShops' }
+  /public/shops/{shopId}:
+    get:
+      tags: [Public]
+      operationId: getShop
+      summary: Get a single demo shop
+      parameters:
+        - $ref: '#/components/parameters/ShopId'
+      responses:
+        '200':
+          description: Shop found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Shop' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /public/shops/{shopId}/availability:
+    get:
+      tags: [Public]
+      operationId: getShopAvailability
+      summary: Get demo inventory snapshot and public queue summary
+      parameters:
+        - $ref: '#/components/parameters/ShopId'
+      responses:
+        '200':
+          description: Timestamped demo availability
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [shopId, isDemo, asOf, inventory]
+                properties:
+                  shopId: { type: string, format: uuid }
+                  isDemo: { type: boolean, const: true }
+                  asOf: { type: string, format: date-time }
+                  inventory: { type: array, items: { $ref: '#/components/schemas/InventoryItem' } }
+                  queue:
+                    type: object
+                    properties:
+                      waiting: { type: integer, minimum: 0 }
+                      serving: { type: integer, minimum: 0 }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /citizen/demo-card-verifications:
+    post:
+      tags: [Citizen Demo]
+      operationId: verifyDemoCard
+      summary: Verify a pre-seeded fictional demo ration card
+      description: Works only if DEMO_MODE=true. Never validates a real government ration card.
+      parameters:
+        - $ref: '#/components/parameters/RequestIdempotencyKeyOptional'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cardNumber]
+              properties:
+                cardNumber: { type: string, minLength: 6, maxLength: 40, example: DEMO-TN-0001 }
+      responses:
+        '201':
+          description: Synthetic card accepted; verification expires
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DemoVerification' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /citizen/demo-card-verifications/{verificationId}/entitlements:
+    get:
+      tags: [Citizen Demo]
+      operationId: getDemoEntitlements
+      summary: Get entitlement display for a verified synthetic card
+      parameters:
+        - in: path
+          name: verificationId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Rules for the demo card with provenance metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [isDemo, cardCategory, policyVersion, items]
+                properties:
+                  isDemo: { type: boolean, const: true }
+                  cardCategory: { $ref: '#/components/schemas/CardCategory' }
+                  policyVersion: { type: string }
+                  sourceUrl: { type: [string, 'null'], format: uri }
+                  sourceNote: { type: string }
+                  verifiedAt: { type: [string, 'null'], format: date-time }
+                  validFrom: { type: string, format: date }
+                  validTo: { type: [string, 'null'], format: date }
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [commodity, quantity, unit]
+                      properties:
+                        commodity: { $ref: '#/components/schemas/Commodity' }
+                        quantity: { type: number, minimum: 0 }
+                        unit: { type: string }
+                        explanation: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /queue-tokens:
+    post:
+      tags: [Citizen Demo]
+      operationId: createQueueToken
+      summary: Create a FIFO token for a verified demo card
+      parameters:
+        - $ref: '#/components/parameters/RequestIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verificationId, shopId]
+              properties:
+                verificationId: { type: string, format: uuid }
+                shopId: { type: string, format: uuid }
+      responses:
+        '201':
+          description: Token created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QueueTokenPublic' }
+        '200':
+          description: Idempotent replay returns existing request result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QueueTokenPublic' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/BusinessRuleFailure' }
+  /queue-tokens/{tokenId}:
+    get:
+      tags: [Citizen Demo]
+      operationId: getQueueToken
+      summary: Get the status and live position of a token
+      parameters:
+        - $ref: '#/components/parameters/TokenId'
+      responses:
+        '200':
+          description: Citizen-safe token status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QueueTokenPublic' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /queue-tokens/{tokenId}/cancel:
+    post:
+      tags: [Citizen Demo]
+      operationId: cancelQueueToken
+      summary: Cancel a waiting token
+      parameters:
+        - $ref: '#/components/parameters/TokenId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, maxLength: 300 }
+      responses:
+        '200':
+          description: Token cancelled
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QueueTokenPublic' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /complaints:
+    post:
+      tags: [Citizen Demo]
+      operationId: createDemoComplaint
+      summary: Submit a synthetic demo complaint
+      description: Not sent to a government grievance system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category, subject, message]
+              properties:
+                category: { type: string, enum: [SHOP_SERVICE, STOCK_INFORMATION, QUEUE, STAFF_CONDUCT, WEBSITE, OTHER] }
+                subject: { type: string, minLength: 4, maxLength: 160 }
+                message: { type: string, minLength: 10, maxLength: 4000 }
+                shopId: { type: [string, 'null'], format: uuid }
+                demoContactHint: { type: [string, 'null'], maxLength: 80 }
+      responses:
+        '201':
+          description: Demo complaint recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [referenceCode, status, isDemo, createdAt]
+                properties:
+                  referenceCode: { type: string }
+                  status: { $ref: '#/components/schemas/ComplaintStatus' }
+                  isDemo: { type: boolean, const: true }
+                  createdAt: { type: string, format: date-time }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /complaints/{referenceCode}:
+    get:
+      tags: [Citizen Demo]
+      operationId: getDemoComplaintStatus
+      summary: Get minimal status of a demo complaint
+      parameters:
+        - in: path
+          name: referenceCode
+          required: true
+          schema: { type: string, maxLength: 24 }
+      responses:
+        '200':
+          description: Public status only; no complaint message exposed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  referenceCode: { type: string }
+                  status: { $ref: '#/components/schemas/ComplaintStatus' }
+                  createdAt: { type: string, format: date-time }
+                  updatedAt: { type: string, format: date-time }
+                  isDemo: { type: boolean, const: true }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /assistant/query:
+    post:
+      tags: [Public]
+      operationId: queryAssistant
+      summary: Ask the FAQ assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query, locale]
+              properties:
+                query: { type: string, minLength: 1, maxLength: 1200 }
+                locale: { type: string, enum: [en, ta, te, hi] }
+      responses:
+        '200':
+          description: FAQ/AI response with source links and fallback state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [answer, locale, sourceLinks, isAiGenerated, fallbackUsed]
+                properties:
+                  answer: { type: string }
+                  locale: { type: string }
+                  sourceLinks: { type: array, items: { type: string, format: uri } }
+                  isAiGenerated: { type: boolean }
+                  fallbackUsed: { type: boolean }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /auth/login:
+    post:
+      tags: [Authentication]
+      operationId: staffLogin
+      summary: Authenticate a demo staff or administrator account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, maxLength: 80 }
+                password: { type: string, minLength: 1, maxLength: 200, format: password }
+      responses:
+        '200':
+          description: Session established via secure cookie
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+              description: HTTP-only, SameSite cookie; Secure on HTTPS deployments.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CurrentUser' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      operationId: logout
+      security: [{ sessionCookie: [] }]
+      responses:
+        '204': { description: Session invalidated }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /auth/me:
+    get:
+      tags: [Authentication]
+      operationId: currentUser
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Current authenticated user's safe profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CurrentUser' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /staff/queue:
+    get:
+      tags: [Staff]
+      operationId: getStaffQueue
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [WAITING, SERVING, COMPLETED, CANCELLED, NO_SHOW] }
+        - in: query
+          name: serviceDate
+          schema: { type: string, format: date }
+        - in: query
+          name: counterNo
+          schema: { type: integer, minimum: 1, maximum: 20 }
+      responses:
+        '200':
+          description: Assigned-shop tokens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/QueueTokenStaff' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /staff/queue/call-next:
+    post:
+      tags: [Staff]
+      operationId: callNextToken
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [counterNo]
+              properties:
+                counterNo: { type: integer, minimum: 1, maximum: 20 }
+      responses:
+        '200':
+          description: Next FIFO token is now serving
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QueueTokenStaff' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /staff/queue-tokens/{tokenId}/no-show:
+    post:
+      tags: [Staff]
+      operationId: markNoShow
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TokenId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 3, maxLength: 300 }
+      responses:
+        '200':
+          description: Token marked no-show
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QueueTokenStaff' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /staff/queue-tokens/{tokenId}/cancel:
+    post:
+      tags: [Staff]
+      operationId: staffCancelToken
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TokenId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 3, maxLength: 300 }
+      responses:
+        '200':
+          description: Token cancelled
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QueueTokenStaff' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /staff/queue-tokens/{tokenId}/complete:
+    post:
+      tags: [Staff]
+      operationId: completeDistribution
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TokenId'
+        - $ref: '#/components/parameters/RequestIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required: [commodityId, quantity]
+                    properties:
+                      commodityId: { type: string, format: uuid }
+                      quantity: { type: number, exclusiveMinimum: 0 }
+                note: { type: string, maxLength: 500 }
+      responses:
+        '200':
+          description: Distribution completed once and inventory reconciled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { $ref: '#/components/schemas/QueueTokenStaff' }
+                  distributionId: { type: string, format: uuid }
+                  stockChanges: { type: array, items: { $ref: '#/components/schemas/StockChange' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/BusinessRuleFailure' }
+  /staff/inventory:
+    get:
+      tags: [Staff]
+      operationId: getStaffInventory
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Inventory for assigned shop
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/InventoryItem' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /staff/inventory/transactions:
+    post:
+      tags: [Staff]
+      operationId: createInventoryTransaction
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - $ref: '#/components/parameters/RequestIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [commodityId, transactionType, quantityDelta, reason]
+              properties:
+                commodityId: { type: string, format: uuid }
+                transactionType: { type: string, enum: [RESTOCK, ADJUSTMENT] }
+                quantityDelta: { type: number, not: { const: 0 } }
+                reason: { type: string, minLength: 3, maxLength: 300 }
+      responses:
+        '201':
+          description: Inventory updated and ledger record created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StockChange' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/BusinessRuleFailure' }
+  /staff/inventory/ledger:
+    get:
+      tags: [Staff]
+      operationId: getInventoryLedger
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: query
+          name: commodityId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Stock ledger rows
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/StockChange' } }
+                  page: { type: integer }
+                  pageSize: { type: integer }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /staff/beneficiaries:
+    get:
+      tags: [Staff]
+      operationId: searchDemoBeneficiaries
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string, minLength: 2, maxLength: 80 }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+      responses:
+        '200':
+          description: Synthetic matching records with redacted fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string, format: uuid }
+                        cardNumberMasked: { type: string }
+                        category: { $ref: '#/components/schemas/CardCategory' }
+                        headName: { type: string }
+                        familyMembers: { type: integer }
+                        shopId: { type: string, format: uuid }
+                        isDemo: { type: boolean, const: true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /staff/reports/summary:
+    get:
+      tags: [Staff]
+      operationId: getShopReportSummary
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Demo shop metrics for selected dates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isDemo: { type: boolean, const: true }
+                  from: { type: string, format: date }
+                  to: { type: string, format: date }
+                  tokensCreated: { type: integer }
+                  completed: { type: integer }
+                  noShow: { type: integer }
+                  averageServiceMinutes: { type: number }
+                  stockMovements: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /admin/shops:
+    get:
+      tags: [Administration]
+      operationId: adminListShops
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: All demo shops, including inactive
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginatedShops' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Administration]
+      operationId: adminCreateShop
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ShopInput' }
+      responses:
+        '201':
+          description: Demo shop created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Shop' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+  /admin/shops/{shopId}:
+    get:
+      tags: [Administration]
+      operationId: adminGetShop
+      security: [{ sessionCookie: [] }]
+      parameters: [ { $ref: '#/components/parameters/ShopId' } ]
+      responses:
+        '200':
+          description: Shop details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Shop' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Administration]
+      operationId: adminUpdateShop
+      security: [{ sessionCookie: [] }]
+      parameters: [ { $ref: '#/components/parameters/ShopId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ShopInput' }
+      responses:
+        '200':
+          description: Shop updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Shop' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /admin/users:
+    get:
+      tags: [Administration]
+      operationId: adminListUsers
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Users with safe fields only
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/CurrentUser' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Administration]
+      operationId: adminCreateUser
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, fullName, password, role]
+              properties:
+                username: { type: string, minLength: 3, maxLength: 80 }
+                fullName: { type: string, minLength: 2, maxLength: 160 }
+                password: { type: string, minLength: 12, maxLength: 200, format: password }
+                role: { type: string, enum: [SHOP_OPERATOR, SHOP_SUPERVISOR, SYSTEM_ADMIN] }
+                shopId: { type: [string, 'null'], format: uuid }
+      responses:
+        '201': { description: User created with hashed password }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+  /admin/commodities:
+    get:
+      tags: [Administration]
+      operationId: adminListCommodities
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Commodity list including inactive entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Commodity' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Administration]
+      operationId: adminCreateCommodity
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, nameI18n, unit]
+              properties:
+                code: { type: string, pattern: '^[A-Z0-9_]+$' }
+                nameI18n: { type: object, additionalProperties: { type: string } }
+                unit: { type: string, minLength: 1, maxLength: 24 }
+      responses:
+        '201': { description: Commodity created }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /admin/policy-rules:
+    get:
+      tags: [Administration]
+      operationId: adminListPolicyRules
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Versioned policy rules and provenance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/PolicyRule' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Administration]
+      operationId: adminCreatePolicyRule
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PolicyRuleInput' }
+      responses:
+        '201':
+          description: New policy rule version created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PolicyRule' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /admin/notices:
+    get:
+      tags: [Administration]
+      operationId: adminListNotices
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Draft/published/archive notices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Notice' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Administration]
+      operationId: adminCreateNotice
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [titleI18n, bodyI18n, category]
+              properties:
+                titleI18n: { type: object, additionalProperties: { type: string } }
+                bodyI18n: { type: object, additionalProperties: { type: string } }
+                category: { type: string, maxLength: 60 }
+                status: { type: string, enum: [DRAFT, PUBLISHED, ARCHIVED], default: DRAFT }
+                startsAt: { type: [string, 'null'], format: date-time }
+                endsAt: { type: [string, 'null'], format: date-time }
+      responses:
+        '201': { description: Notice created }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /admin/complaints:
+    get:
+      tags: [Administration]
+      operationId: adminListComplaints
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: query
+          name: status
+          schema: { $ref: '#/components/schemas/ComplaintStatus' }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+      responses:
+        '200': { description: Paginated demo complaints }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /admin/complaints/{complaintId}:
+    patch:
+      tags: [Administration]
+      operationId: adminUpdateComplaint
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: path
+          name: complaintId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { $ref: '#/components/schemas/ComplaintStatus' }
+                responseNote: { type: string, maxLength: 1000 }
+      responses:
+        '200': { description: Complaint updated and audited }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /admin/audit-logs:
+    get:
+      tags: [Administration]
+      operationId: adminListAuditLogs
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: query
+          name: action
+          schema: { type: string, maxLength: 100 }
+        - in: query
+          name: resourceType
+          schema: { type: string, maxLength: 80 }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Redacted audit events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/AuditEvent' } }
+                  page: { type: integer }
+                  pageSize: { type: integer }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /admin/users/{userId}:
+    patch:
+      tags: [Administration]
+      operationId: adminUpdateUser
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName: { type: string, minLength: 2, maxLength: 160 }
+                role: { type: string, enum: [SHOP_OPERATOR, SHOP_SUPERVISOR, SYSTEM_ADMIN] }
+                shopId: { type: [string, 'null'], format: uuid }
+                isActive: { type: boolean }
+      responses:
+        '200': { description: User updated; password hashes are never returned }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+  /admin/commodities/{commodityId}:
+    patch:
+      tags: [Administration]
+      operationId: adminUpdateCommodity
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: path
+          name: commodityId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nameI18n: { type: object, additionalProperties: { type: string } }
+                unit: { type: string, minLength: 1, maxLength: 24 }
+                isActive: { type: boolean }
+      responses:
+        '200':
+          description: Commodity updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Commodity' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /admin/policy-rules/{ruleId}:
+    patch:
+      tags: [Administration]
+      operationId: adminUpdatePolicyRule
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: path
+          name: ruleId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PolicyRuleInput' }
+      responses:
+        '200':
+          description: New or amended controlled policy version returned with source provenance
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PolicyRule' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /admin/notices/{noticeId}:
+    patch:
+      tags: [Administration]
+      operationId: adminUpdateNotice
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: path
+          name: noticeId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                titleI18n: { type: object, additionalProperties: { type: string } }
+                bodyI18n: { type: object, additionalProperties: { type: string } }
+                category: { type: string, maxLength: 60 }
+                status: { type: string, enum: [DRAFT, PUBLISHED, ARCHIVED] }
+                startsAt: { type: [string, 'null'], format: date-time }
+                endsAt: { type: [string, 'null'], format: date-time }
+      responses:
+        '200':
+          description: Notice updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Notice' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /admin/inventory:
+    get:
+      tags: [Administration]
+      operationId: adminGetInventory
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: query
+          name: shopId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: lowStockOnly
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Inventory across demo shops, optionally filtered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/InventoryItem' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /admin/inventory/transactions:
+    post:
+      tags: [Administration]
+      operationId: adminCreateInventoryTransaction
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - $ref: '#/components/parameters/RequestIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [shopId, commodityId, transactionType, quantityDelta, reason]
+              properties:
+                shopId: { type: string, format: uuid }
+                commodityId: { type: string, format: uuid }
+                transactionType: { type: string, enum: [RESTOCK, ADJUSTMENT] }
+                quantityDelta: { type: number, not: { const: 0 } }
+                reason: { type: string, minLength: 3, maxLength: 300 }
+      responses:
+        '201':
+          description: Inventory changed and ledger entry created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StockChange' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/BusinessRuleFailure' }
+  /admin/inventory/ledger:
+    get:
+      tags: [Administration]
+      operationId: adminGetInventoryLedger
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: query
+          name: shopId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: commodityId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Redacted cross-shop stock ledger
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/StockChange' } }
+                  page: { type: integer }
+                  pageSize: { type: integer }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: srqms_session
+  parameters:
+    Locale:
+      in: query
+      name: locale
+      schema: { type: string, enum: [en, ta, te, hi], default: en }
+    ShopId:
+      in: path
+      name: shopId
+      required: true
+      schema: { type: string, format: uuid }
+    TokenId:
+      in: path
+      name: tokenId
+      required: true
+      schema: { type: string, format: uuid }
+    RequestIdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema: { type: string, minLength: 8, maxLength: 120 }
+    RequestIdempotencyKeyOptional:
+      in: header
+      name: Idempotency-Key
+      required: false
+      schema: { type: string, minLength: 8, maxLength: 120 }
+  responses:
+    ValidationError:
+      description: Request schema validation error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unauthorized:
+      description: Authentication required or session invalid
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Forbidden:
+      description: Authenticated role is not allowed to perform this action
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: Resource not found or not available to this user
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Conflict:
+      description: State conflict, duplicate active token, busy counter or replay conflict
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    BusinessRuleFailure:
+      description: Business rule failed, including insufficient inventory
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    RateLimited:
+      description: Rate limit reached
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    ServiceUnavailable:
+      description: Service dependency unavailable
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, requestId]
+      properties:
+        status: { type: string, const: ok }
+        requestId: { type: string }
+    ReadyResponse:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [ready, not_ready] }
+        checks:
+          type: object
+          additionalProperties: { type: string, enum: [ok, failed, skipped] }
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            requestId: { type: string }
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field: { type: string }
+                  issue: { type: string }
+    CardCategory:
+      type: string
+      enum: [AAY, PHH, NPHH, OTHER_DEMO]
+    QueueStatus:
+      type: string
+      enum: [WAITING, SERVING, COMPLETED, CANCELLED, NO_SHOW]
+    ComplaintStatus:
+      type: string
+      enum: [RECEIVED, IN_REVIEW, RESOLVED, CLOSED]
+    Shop:
+      type: object
+      required: [id, shopCode, name, district, address, isDemo, isActive]
+      properties:
+        id: { type: string, format: uuid }
+        shopCode: { type: string }
+        name: { type: string }
+        district: { type: string }
+        taluk: { type: [string, 'null'] }
+        locality: { type: [string, 'null'] }
+        address: { type: string }
+        pincode: { type: [string, 'null'] }
+        phoneDisplay: { type: [string, 'null'] }
+        latitude: { type: [number, 'null'] }
+        longitude: { type: [number, 'null'] }
+        openingHours: { type: object, additionalProperties: { type: string } }
+        isDemo: { type: boolean, const: true }
+        isActive: { type: boolean }
+    ShopInput:
+      type: object
+      required: [shopCode, name, district, address]
+      properties:
+        shopCode: { type: string, minLength: 3, maxLength: 40 }
+        name: { type: string, minLength: 3, maxLength: 180 }
+        district: { type: string, minLength: 2, maxLength: 100 }
+        taluk: { type: [string, 'null'], maxLength: 100 }
+        locality: { type: [string, 'null'], maxLength: 120 }
+        address: { type: string, minLength: 3, maxLength: 1000 }
+        pincode: { type: [string, 'null'], pattern: '^\\d{6}$' }
+        phoneDisplay: { type: [string, 'null'], maxLength: 40 }
+        openingHours: { type: object, additionalProperties: { type: string } }
+    PaginatedShops:
+      type: object
+      required: [items, page, pageSize, total]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Shop' } }
+        page: { type: integer }
+        pageSize: { type: integer }
+        total: { type: integer }
+    Commodity:
+      type: object
+      required: [id, code, name, unit, isActive]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        nameI18n: { type: object, additionalProperties: { type: string } }
+        unit: { type: string }
+        isActive: { type: boolean }
+    PolicyRule:
+      type: object
+      required: [id, ruleCode, version, cardCategory, commodityId, ruleConfig, validFrom, isDemo]
+      properties:
+        id: { type: string, format: uuid }
+        ruleCode: { type: string }
+        version: { type: integer }
+        cardCategory: { $ref: '#/components/schemas/CardCategory' }
+        commodityId: { type: string, format: uuid }
+        district: { type: [string, 'null'] }
+        ruleConfig: { type: object, additionalProperties: true }
+        explanationI18n: { type: object, additionalProperties: { type: string } }
+        sourceUrl: { type: [string, 'null'], format: uri }
+        sourceNote: { type: [string, 'null'] }
+        verifiedAt: { type: [string, 'null'], format: date-time }
+        validFrom: { type: string, format: date }
+        validTo: { type: [string, 'null'], format: date }
+        isDemo: { type: boolean }
+    PolicyRuleInput:
+      type: object
+      required: [ruleCode, version, cardCategory, commodityId, ruleConfig, validFrom, isDemo, sourceNote]
+      properties:
+        ruleCode: { type: string, maxLength: 80 }
+        version: { type: integer, minimum: 1 }
+        cardCategory: { $ref: '#/components/schemas/CardCategory' }
+        commodityId: { type: string, format: uuid }
+        district: { type: [string, 'null'], maxLength: 100 }
+        ruleConfig: { type: object, additionalProperties: true }
+        explanationI18n: { type: object, additionalProperties: { type: string } }
+        sourceUrl: { type: [string, 'null'], format: uri }
+        sourceNote: { type: string, minLength: 3, maxLength: 1000 }
+        verifiedAt: { type: [string, 'null'], format: date-time }
+        validFrom: { type: string, format: date }
+        validTo: { type: [string, 'null'], format: date }
+        isDemo: { type: boolean }
+    InventoryItem:
+      type: object
+      required: [shopId, commodity, quantityAvailable, reorderLevel, isDemo, updatedAt]
+      properties:
+        shopId: { type: string, format: uuid }
+        commodity: { $ref: '#/components/schemas/Commodity' }
+        quantityAvailable: { type: number, minimum: 0 }
+        reorderLevel: { type: number, minimum: 0 }
+        isLowStock: { type: boolean }
+        isDemo: { type: boolean, const: true }
+        updatedAt: { type: string, format: date-time }
+    DemoVerification:
+      type: object
+      required: [verificationId, expiresAt, card, isDemo]
+      properties:
+        verificationId: { type: string, format: uuid }
+        expiresAt: { type: string, format: date-time }
+        isDemo: { type: boolean, const: true }
+        card:
+          type: object
+          required: [cardNumberMasked, category, headName, familyMembers, shopId]
+          properties:
+            cardNumberMasked: { type: string }
+            category: { $ref: '#/components/schemas/CardCategory' }
+            headName: { type: string }
+            familyMembers: { type: integer }
+            shopId: { type: string, format: uuid }
+            shopName: { type: string }
+    QueueTokenPublic:
+      type: object
+      required: [id, tokenNumber, shopId, serviceDate, status, position, customersAhead, estimatedWaitMinutes, estimateMethod, isDemo, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        tokenNumber: { type: string }
+        shopId: { type: string, format: uuid }
+        shopName: { type: string }
+        serviceDate: { type: string, format: date }
+        status: { $ref: '#/components/schemas/QueueStatus' }
+        counterNo: { type: [integer, 'null'] }
+        position: { type: integer, minimum: 0 }
+        customersAhead: { type: integer, minimum: 0 }
+        estimatedWaitMinutes: { type: integer, minimum: 0 }
+        estimateMethod: { type: string, const: demo_average_service_minutes }
+        isDemo: { type: boolean, const: true }
+        updatedAt: { type: string, format: date-time }
+    QueueTokenStaff:
+      allOf:
+        - $ref: '#/components/schemas/QueueTokenPublic'
+        - type: object
+          properties:
+            sequenceNo: { type: integer }
+            cardNumberMasked: { type: string }
+            beneficiaryName: { type: string }
+            familyMembers: { type: integer }
+            servingStartedAt: { type: [string, 'null'], format: date-time }
+            completedAt: { type: [string, 'null'], format: date-time }
+    StockChange:
+      type: object
+      required: [id, commodityId, transactionType, quantityDelta, quantityBefore, quantityAfter, reason, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        commodityId: { type: string, format: uuid }
+        commodityName: { type: string }
+        transactionType: { type: string, enum: [RESTOCK, DISTRIBUTION, ADJUSTMENT, REVERSAL] }
+        quantityDelta: { type: number }
+        quantityBefore: { type: number }
+        quantityAfter: { type: number }
+        reason: { type: string }
+        actorName: { type: string }
+        requestId: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+    CurrentUser:
+      type: object
+      required: [id, username, fullName, role, isActive]
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        fullName: { type: string }
+        role: { type: string, enum: [SHOP_OPERATOR, SHOP_SUPERVISOR, SYSTEM_ADMIN] }
+        shopId: { type: [string, 'null'], format: uuid }
+        shopName: { type: [string, 'null'] }
+        isActive: { type: boolean }
+    Notice:
+      type: object
+      required: [id, title, body, category, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        body: { type: string }
+        titleI18n: { type: object, additionalProperties: { type: string } }
+        bodyI18n: { type: object, additionalProperties: { type: string } }
+        category: { type: string }
+        status: { type: string, enum: [DRAFT, PUBLISHED, ARCHIVED] }
+        startsAt: { type: [string, 'null'], format: date-time }
+        endsAt: { type: [string, 'null'], format: date-time }
+        createdAt: { type: string, format: date-time }
+    AuditEvent:
+      type: object
+      required: [id, action, resourceType, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        actorDisplay: { type: string }
+        action: { type: string }
+        resourceType: { type: string }
+        resourceId: { type: [string, 'null'] }
+        oldValues: { type: [object, 'null'], additionalProperties: true }
+        newValues: { type: [object, 'null'], additionalProperties: true }
+        reason: { type: [string, 'null'] }
+        requestId: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }

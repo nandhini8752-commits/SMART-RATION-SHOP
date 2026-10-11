@@ -6,6 +6,8 @@ import { db } from './server/db';
 import { telegramService } from './server/telegram';
 import { askRationAi } from './server/ai';
 import { Language } from './src/types';
+import { v1Router } from './server/routes/v1';
+import { errorHandler } from './server/middleware/error';
 
 dotenv.config();
 
@@ -14,6 +16,21 @@ const PORT = Number(process.env.PORT) || 3000;
 const isProd = process.env.NODE_ENV === 'production';
 
 app.use(express.json());
+
+// Request ID and CORS security headers
+app.use((req, res, next) => {
+  const reqId = (req.headers['x-request-id'] as string) || `req_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  req.headers['x-request-id'] = reqId;
+  res.setHeader('X-Request-Id', reqId);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  next();
+});
+
+// ----------------------------------------------------
+// V1 REST API CONTRACT
+// ----------------------------------------------------
+app.use('/api/v1', v1Router);
 
 // ----------------------------------------------------
 // API ROUTES
@@ -305,6 +322,8 @@ app.get('/api/telegram/audit', (_req: Request, res: Response) => {
     isBotTokenConfigured: telegramService.getBotTokenStatus().configured
   });
 });
+
+app.use(errorHandler);
 
 // ----------------------------------------------------
 // VITE DEV MIDDLEWARE / STATIC ASSETS
